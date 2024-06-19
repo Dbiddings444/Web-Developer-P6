@@ -14,16 +14,16 @@ async function main() {
   await mongoose.connect(mongoDB)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err))
-//   try {
-//     // await client.connect();
+  try {
+    await client.connect();
 
-//     // await listDatabases(client);
-//   } catch (e) {
-//     console.error(e);
-//   } finally {
-//     // await client.close();
-//     console.log("connection was a success!!!")
-//   }
+    await listDatabases(client);
+  } catch (e) {
+    console.error(e);
+  } finally {
+    // await client.close();
+    console.log("connection was a success!!!")
+  }
 }
 
 main().catch(console.error);
