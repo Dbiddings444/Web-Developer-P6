@@ -19,11 +19,11 @@ mongoose.connect(process.env.DATABASE_URL)
 
 // Define a simple route
 app.get('/', (req, res) => {
-  res.send('Text from server');
+  res.send('The Server is up and running!!!');
 });
 
 // Use the authentication routes
-app.use('/users', userRoutes);
+app.use('/', userRoutes);
 
 // Start the server
 app.listen(port, () => console.log(`Listening on port ${port}`));

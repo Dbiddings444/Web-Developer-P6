@@ -1,47 +1,73 @@
-const { validationResult } = require('express-validator');
-const User = require('../models/user');
+const User = require('../models/User');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv'); 
 
-exports.register = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-  
-    const { email, password } = req.body;
-    try {
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        return res.status(400).json({ message: 'Email already in use' });
-      }
-  
-      const user = new User({ email, password });
-      await user.save();
-      res.status(201).json({ message: 'User registered successfully' });
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  };
+dotenv.config({ path: '.env' });
+const jwtSecret = process.env.JWT_SECRET_KEY;
 
-  exports.login = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-  
-    const { email, password } = req.body;
-    try {
-      const user = await User.findOne({ email });
-      if (!user) {
-        return res.status(400).json({ message: 'Invalid email or password' });
+function encryptPassword(response, user) {
+	bcrypt.genSalt(10, (err, salt) => {
+	  bcrypt.hash(user.password, salt, (err, hash) => {
+	    if (err) throw err;
+	    user.password = hash;
+	    user.save()
+	      .then(user => {
+	      	response.send({ message: 'Registration successful!' })
+	      })
+	      .catch(err => console.log(err));
+	  });
+	});
+}
+
+exports.signup = (req, res) => {
+	console.log(req.body);
+	const { email, password } = req.body;
+	User.findOne({ email: email })
+		.then(user => {
+			if (user) {
+				res.send({ message: 'Account already exists' });
+			} else {
+				const newUser = new User({ email, password });
+				encryptPassword(res, newUser);
+			}
+		})
+}
+
+exports.login = (req, res) => {
+	console.log(req.body);
+	const { email, password } = req.body;
+	User.findOne({ email: email })
+		.then(user => {
+			if (!user) {
+				res.send({ msessage: 'Email not found' });
+			} else {
+				bcrypt.compare(password, user.password, (err, matches) => {
+					if (matches) {
+						const signedToken = jwt.sign({ email: email }, jwtSecret, { expiresIn: '5m' })
+						console.log(signedToken);
+						res.send({ token: signedToken });
+					}
+				})
+			}
+		})
+}
+
+exports.verify = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (token == null) return res.sendStatus(401);
+
+  jwt.verify(token, jwtSecret, (err, user) => {
+      if (err) {
+      	return res.sendStatus(403);
       }
-  
-      const isMatch = await user.comparePassword(password);
-      if (!isMatch) {
-        return res.status(400).json({ message: 'Invalid email or password' });
-      }
-  
-      res.status(200).json({ message: 'Login successful' });
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  };
+      req.user = user;
+      next();
+  });
+}
+
+exports.authenticated = (req, res) => {
+	res.send('Authenticated page');
+}
