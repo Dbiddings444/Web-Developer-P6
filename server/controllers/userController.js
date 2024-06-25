@@ -68,6 +68,19 @@ exports.verify = (req, res, next) => {
   });
 }
 
+
+exports.updateAnUserImage =  (req, res) => {
+    const id = req.params._id;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send(`No post with id: ${id}`);
+
+    const path = req.file.path.replace(/\\/g, "/")
+
+     User.findByIdAndUpdate(id, req.body = {ProfilePicture: "http://localhost:3000/" + path}, { new: true });
+    res.json(updateAnUser);
+}
+
+
 exports.authenticated = (req, res) => {
 	res.send('Authenticated page');
 }
