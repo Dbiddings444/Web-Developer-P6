@@ -29,6 +29,7 @@ app.get('/', (req, res) => {
 
 // Use the authentication routes
 app.use('/', userRoutes);
+app.use('/', sauceRoutes);
 
 // Start the server
 app.listen(port, () => console.log(`Listening on port ${port}`));

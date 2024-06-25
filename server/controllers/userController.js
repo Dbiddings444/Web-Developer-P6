@@ -1,22 +1,22 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const dotenv = require('dotenv'); 
+const dotenv = require('dotenv');
 
 dotenv.config({ path: '.env' });
 const jwtSecret = process.env.JWT_SECRET_KEY;
 
 function encryptPassword(response, user) {
 	bcrypt.genSalt(10, (err, salt) => {
-	  bcrypt.hash(user.password, salt, (err, hash) => {
-	    if (err) throw err;
-	    user.password = hash;
-	    user.save()
-	      .then(user => {
-	      	response.send({ message: 'Registration successful!' })
-	      })
-	      .catch(err => console.log(err));
-	  });
+		bcrypt.hash(user.password, salt, (err, hash) => {
+			if (err) throw err;
+			user.password = hash;
+			user.save()
+				.then(user => {
+					response.send({ message: 'Registration successful!' })
+				})
+				.catch(err => console.log(err));
+		});
 	});
 }
 
@@ -54,30 +54,30 @@ exports.login = (req, res) => {
 }
 
 exports.verify = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+	const authHeader = req.headers['authorization'];
+	const token = authHeader && authHeader.split(' ')[1];
 
-  if (token == null) return res.sendStatus(401);
+	if (token == null) return res.sendStatus(401);
 
-  jwt.verify(token, jwtSecret, (err, user) => {
-      if (err) {
-      	return res.sendStatus(403);
-      }
-      req.user = user;
-      next();
-  });
+	jwt.verify(token, jwtSecret, (err, user) => {
+		if (err) {
+			return res.sendStatus(403);
+		}
+		req.user = user;
+		next();
+	});
 }
 
 
-exports.updateAnUserImage =  (req, res) => {
-    const id = req.params._id;
+exports.updateAnUserImage = (req, res) => {
+	const id = req.params._id;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send(`No post with id: ${id}`);
+	if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send(`No post with id: ${id}`);
 
-    const path = req.file.path.replace(/\\/g, "/")
+	const path = req.file.path.replace(/\\/g, "/")
 
-     User.findByIdAndUpdate(id, req.body = {ProfilePicture: "http://localhost:3000/" + path}, { new: true });
-    res.json(updateAnUser);
+	User.findByIdAndUpdate(id, req.body = { ProfilePicture: "http://localhost:3000/" + path }, { new: true });
+	res.json(updateAnUser);
 }
 
 
