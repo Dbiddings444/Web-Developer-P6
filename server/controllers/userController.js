@@ -26,7 +26,7 @@ exports.signup = (req, res) => {
 	User.findOne({ email: email })
 		.then(user => {
 			if (user) {
-				res.send({ message: 'Account already exists' });
+				res.status(400).json({ message: 'Email already exists' });
 			} else {
 				const newUser = new User({ email, password });
 				encryptPassword(res, newUser);
