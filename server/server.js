@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const userRoutes = require('./routes/userRoutes');
+const sauceRoutes = require('./routes/sauceRoutes');
 const bodyParser = require('body-parser'); // Use require for body-parser
 
 dotenv.config({ path: '.env' });

@@ -18,7 +18,7 @@ exports.getAllSauces = (req, res, next) => {
     );
   };
   
-  exports.getOnSauce = (req, res, next) => {
+  exports.getOneSauce = (req, res, next) => {
     Sauce.findById(req.params.id).then(
       (sauce) => {
         if (!sauce) {
@@ -32,4 +32,19 @@ exports.getAllSauces = (req, res, next) => {
       }
     )
   };
+
+  exports.deleteSauce = (req, res, next) => {
+    Sauce.findById(req.params.id).then(
+      (sauce) => {
+        if (!sauce) {
+          return res.status(404).send(new Error('Sauce not found!'));
+        }
+        res.status(200).json({ message: 'Sauce deleted successfully' });
+      }
+    ).catch(
+      () => {
+        res.status(500).send(new Error('Database error!'));
+      }
+    )
+  };  
 

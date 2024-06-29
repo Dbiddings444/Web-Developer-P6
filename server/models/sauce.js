@@ -55,5 +55,5 @@ exports.findById = (id) => {
     resolve(JSON.parse(JSON.stringify(sauces)).find((sauce) => sauce._id == id))
   );
 };
-const Sauce = mongoose.model('Sauce', sauceSchema);
+const Sauce = mongoose.model('Sauce', SauceSchema);
 module.exports = Sauce;
