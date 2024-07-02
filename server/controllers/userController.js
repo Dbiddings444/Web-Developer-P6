@@ -45,7 +45,7 @@ exports.login = (req, res) => {
 			} else {
 				bcrypt.compare(password, user.password, (err, matches) => {
 					if (matches) {
-						const signedToken = jwt.sign({ email: email }, jwtSecret, { expiresIn: '5m' })
+						const signedToken = jwt.sign({ email: email }, jwtSecret, { expiresIn: '1h' })
 						console.log(signedToken);
 						res.send({ token: signedToken });
 					}
@@ -55,18 +55,17 @@ exports.login = (req, res) => {
 }
 
 exports.verify = (req, res, next) => {
-	const authHeader = req.headers['authorization'];
-	const token = authHeader && authHeader.split(' ')[1];
-
-	if (token == null) return res.sendStatus(401);
-
-	jwt.verify(token, jwtSecret, (err, user) => {
-		if (err) {
-			return res.sendStatus(403);
-		}
-		req.user = user;
-		next();
-	});
+	try {
+        const token = req.headers.authorization.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ message: 'Auth token is missing!' });
+        }
+        const decodedToken = jwt.verify(token, jwtSecret);
+        req.userData = { userId: decodedToken.userId };
+        next();
+    } catch (error) {
+        res.status(401).json({ message: 'Auth failed!' });
+    }
 }
 
 
