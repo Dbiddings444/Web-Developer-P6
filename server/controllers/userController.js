@@ -56,29 +56,20 @@ exports.login = (req, res) => {
 
 exports.verify = (req, res, next) => {
 	try {
-        const token = req.headers.authorization.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ message: 'Auth token is missing!' });
-        }
-        const decodedToken = jwt.verify(token, jwtSecret);
-        req.userData = { userId: decodedToken.userId };
-        next();
-    } catch (error) {
-        res.status(401).json({ message: 'Auth failed!' });
-    }
+		const token = req.headers.authorization.split(' ')[1];
+		if (!token) {
+			return res.status(401).json({ message: 'Auth token is missing!' });
+		}
+		const decodedToken = jwt.verify(token, jwtSecret);
+		req.userData = { userId: decodedToken.userId };
+		next();
+	} catch (error) {
+		res.status(401).json({ message: 'Auth failed!' });
+	}
 }
 
 
-exports.updateAnUserImage = (req, res) => {
-	const id = req.params._id;
 
-	if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send(`No post with id: ${id}`);
-
-	const path = req.file.path.replace(/\\/g, "/")
-
-	User.findByIdAndUpdate(id, req.body = { ProfilePicture: "http://localhost:3000/" + path }, { new: true });
-	res.json(updateAnUser);
-}
 
 
 exports.authenticated = (req, res) => {

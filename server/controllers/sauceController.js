@@ -71,8 +71,6 @@ exports.createSauce = (req, res) => {
     usersLiked: [],
     usersDisliked: [],
   });
-
-  // Save the sauce to the database
   sauce
     .save()
     .then(() =>
@@ -80,3 +78,18 @@ exports.createSauce = (req, res) => {
     )
     .catch((error) => res.status(400).json({ error: error.message }));
 };
+
+exports.updateAnUserImage = (req, res) => {
+	const id = req.params._id;
+
+	if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send(`No post with id: ${id}`);
+
+	const path = req.file.path.replace(/\\/g, "/")
+
+	User.findByIdAndUpdate(id, req.body = { ProfilePicture: "http://localhost:3000/" + path }, { new: true });
+	res.json(updateAnUser);
+};
+
+exports.likes = (req, res) => {
+
+}
