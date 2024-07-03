@@ -45,7 +45,7 @@ exports.login = (req, res) => {
 			} else {
 				bcrypt.compare(password, user.password, (err, matches) => {
 					if (matches) {
-						const signedToken = jwt.sign({ email: email }, jwtSecret, { expiresIn: '1h' })
+						const signedToken = jwt.sign({ email: email, userId:user._id }, jwtSecret, { expiresIn: '1h' })
 						console.log(signedToken);
 						res.send({ token: signedToken });
 					}

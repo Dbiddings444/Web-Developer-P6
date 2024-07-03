@@ -1,4 +1,5 @@
 const Sauce = require("../models/sauce");
+const user = require("../models/user");
 const dotenv = require("dotenv");
 const fs = require('fs');
 const path = require('path');
@@ -66,6 +67,7 @@ exports.createSauce = (req, res) => {
     imageUrl: `${req.protocol}://${req.get("host")}/uploads/${
       req.file.filename
     }`,
+    id:req.userData.userId,
     likes: 0,
     dislikes: 0,
     usersLiked: [],
@@ -79,17 +81,69 @@ exports.createSauce = (req, res) => {
     .catch((error) => res.status(400).json({ error: error.message }));
 };
 
-exports.updateAnUserImage = (req, res) => {
-	const id = req.params._id;
+exports.updateSauce = (req, res, next) => {
+  const sauceObject = req.file ? 
+  {
+      ...JSON.parse(req.body.sauce),
+      imageUrl: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+  } : { ...req.body };
 
-	if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send(`No post with id: ${id}`);
+  Sauce.findById(req.params.id).then(sauce => {
+      if (!sauce) {
+          return res.status(404).json({ message: 'Sauce not found!' });
+      }
+      
+      if (sauce.userId !== req.userData.userId) {
+          return res.status(403).json({ message: 'Unauthorized request!' });
+      }
 
-	const path = req.file.path.replace(/\\/g, "/")
-
-	User.findByIdAndUpdate(id, req.body = { ProfilePicture: "http://localhost:3000/" + path }, { new: true });
-	res.json(updateAnUser);
+      if (req.file && sauce.imageUrl) {
+          const filename = sauce.imageUrl.split('/uploads/')[1];
+          fs.unlink(`uploads/${filename}`, () => {
+              Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
+                  .then(() => res.status(200).json({ message: 'Sauce updated successfully!' }))
+                  .catch(error => res.status(400).json({ error }));
+          });
+      } else {
+          Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
+              .then(() => res.status(200).json({ message: 'Sauce updated successfully!' }))
+              .catch(error => res.status(400).json({ error }));
+      }
+  }).catch(error => res.status(500).json({ error }));
 };
 
-exports.likes = (req, res) => {
+exports.likes = (req, res, next) => {
+  const userId = req.userData.userId;
+    const like = req.body.like;
 
+    Sauce.findById(req.params.id).then((sauce) => {
+        if (!sauce) {
+            return res.status(404).json({ message: 'Sauce not found!' });
+        }
+
+        // Remove user from both arrays to handle updating like/dislike
+        if (sauce.usersLiked.includes(userId)) {
+            sauce.usersLiked.pull(userId);
+            sauce.likes -= 1;
+        }
+        if (sauce.usersDisliked.includes(userId)) {
+            sauce.usersDisliked.pull(userId);
+            sauce.dislikes -= 1;
+        }
+
+        // Update arrays and counts based on new like value
+        if (like === 1) {
+            sauce.usersLiked.push(userId);
+            sauce.likes += 1;
+        } else if (like === -1) {
+            sauce.usersDisliked.push(userId);
+            sauce.dislikes += 1;
+        }
+
+        sauce.save()
+            .then(() => res.status(200).json({ message: 'Sauce like status updated successfully!' }))
+            .catch((error) => res.status(500).json({ message: 'Failed to update sauce like status!', error }));
+    }).catch((error) => res.status(500).json({ message: 'Database error!', error }));
+
+  
 }

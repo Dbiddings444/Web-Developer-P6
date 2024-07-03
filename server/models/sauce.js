@@ -49,7 +49,6 @@ const SauceSchema = new mongoose.Schema({
   },
 });
 
-const sauces = [];
 exports.findById = (id) => {
   return new Promise((resolve, reject) =>
     resolve(JSON.parse(JSON.stringify(sauces)).find((sauce) => sauce._id == id))
