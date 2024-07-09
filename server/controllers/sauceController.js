@@ -3,6 +3,7 @@ const user = require("../models/user");
 const dotenv = require("dotenv");
 const fs = require('fs');
 const path = require('path');
+const mongoose = require('mongoose');
 
 dotenv.config({ path: ".env" });
 
@@ -60,14 +61,14 @@ exports.deleteSauce = (req, res, next) => {
 exports.createSauce = (req, res) => {
   // Parse the stringified sauce data
   const sauceObject = JSON.parse(req.body.sauce);
-
+  const userId = req.userData.userId;
   // Construct the sauce object
   const sauce = new Sauce({
     ...sauceObject,
     imageUrl: `${req.protocol}://${req.get("host")}/uploads/${
       req.file.filename
     }`,
-    id:req.userData.userId,
+    userId: new mongoose.Types.ObjectId(userId),
     likes: 0,
     dislikes: 0,
     usersLiked: [],
@@ -82,34 +83,48 @@ exports.createSauce = (req, res) => {
 };
 
 exports.updateSauce = (req, res, next) => {
-  const sauceObject = req.file ? 
-  {
+  // Parse the request body to get sauceObject
+  const sauceObject = req.file ? {
       ...JSON.parse(req.body.sauce),
       imageUrl: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
   } : { ...req.body };
 
+  // Find the sauce by ID
   Sauce.findById(req.params.id).then(sauce => {
+      console.log(sauceObject, "the code got this far");
+
       if (!sauce) {
           return res.status(404).json({ message: 'Sauce not found!' });
       }
-      
+
       if (sauce.userId !== req.userData.userId) {
           return res.status(403).json({ message: 'Unauthorized request!' });
       }
 
-      if (req.file && sauce.imageUrl) {
-          const filename = sauce.imageUrl.split('/uploads/')[1];
-          fs.unlink(`uploads/${filename}`, () => {
-              Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
-                  .then(() => res.status(200).json({ message: 'Sauce updated successfully!' }))
-                  .catch(error => res.status(400).json({ error }));
-          });
-      } else {
+      const updateSauceInDatabase = () => {
           Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
               .then(() => res.status(200).json({ message: 'Sauce updated successfully!' }))
               .catch(error => res.status(400).json({ error }));
+      };
+
+      if (req.file && sauce.imageUrl) {
+          console.log(sauceObject, "the code got this far part 3");
+          const filename = sauce.imageUrl.split('/uploads/')[1];
+          fs.unlink(`uploads/${filename}`, (err) => {
+              if (err) {
+                  console.error('File deletion error:', err);
+                  return res.status(500).json({ error: 'File deletion error!' });
+              }
+              updateSauceInDatabase();
+          });
+      } else {
+          console.log(sauceObject, "the code got this far part 3");
+          updateSauceInDatabase();
       }
-  }).catch(error => res.status(500).json({ error }));
+  }).catch(error => {
+      console.error('Database error:', error);
+      res.status(500).json({ error: 'Database error!' });
+  });
 };
 
 exports.likes = (req, res, next) => {
