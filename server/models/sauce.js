@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const SauceSchema = new mongoose.Schema({
   userId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     require: true,
   },
   name: {

@@ -47,6 +47,7 @@ exports.login = (req, res) => {
 					if (matches) {
 						const signedToken = jwt.sign({ email: email, userId:user._id }, jwtSecret, { expiresIn: '1h' })
 						console.log(signedToken);
+						console.log('userId: ',user._id)
 						res.send({ token: signedToken });
 					}
 				})
