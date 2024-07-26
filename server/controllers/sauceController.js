@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 dotenv.config({ path: ".env" });
 
@@ -11,6 +12,8 @@ dotenv.config({ path: ".env" });
 exports.getAllSauces = async (req, res, next) => {
   try {
     const sauces = await Sauce.find();
+    const len = sauces.length -1;
+    console.log(sauces[len].userId.toHexString())
     res.status(200).json(sauces);
   } catch (error) {
     res.status(500).json({ message: "Database error!" });
@@ -60,7 +63,7 @@ exports.deleteSauce = async (req, res, next) => {
 exports.createSauce = async (req, res) => {
   try {
     const sauceObject = JSON.parse(req.body.sauce);
-    const userId = req.userData.userId;
+    const userId =  new ObjectId(req.userData.userId); 
 
     const sauce = new Sauce({
       ...sauceObject,

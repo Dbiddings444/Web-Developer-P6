@@ -33,6 +33,7 @@ export class AuthService {
         this.userId = userId;
         this.authToken = token;
         this.isAuth$.next(true);
+        console.log('Logged in userId:', this.userId);
       })
     );
   }

@@ -27,12 +27,14 @@ export class SingleSauceComponent implements OnInit {
 
   ngOnInit() {
     this.userId = this.auth.getUserId();
+    console.log('User ID:', this.userId);
     this.loading = true;
     this.userId = this.auth.getUserId();
     this.sauce$ = this.route.params.pipe(
       map(params => params['id']),
       switchMap(id => this.sauces.getSauceById(id)),
       tap(sauce => {
+        console.log('Sauce:', sauce);
         this.loading = false;
         if (sauce.usersLiked.find(user => user === this.userId)) {
           this.liked = true;
